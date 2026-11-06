@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "author": "Central de Seguranca IoT",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 0, "left": 0, "attrs": {} },
+    { "type": "wokwi-pir-motion-sensor", "id": "pir1", "top": -120, "left": 150, "attrs": {} },
+    { "type": "wokwi-led", "id": "ledG", "top": -110, "left": -120, "attrs": { "color": "green" } },
+    { "type": "wokwi-led", "id": "ledR", "top": -110, "left": -60, "attrs": { "color": "red" } },
+    { "type": "wokwi-resistor", "id": "r1", "top": -40, "left": -125, "rotate": 90, "attrs": { "value": "220" } },
+    { "type": "wokwi-resistor", "id": "r2", "top": -40, "left": -65, "rotate": 90, "attrs": { "value": "220" } },
+    { "type": "wokwi-buzzer", "id": "bz1", "top": 100, "left": 220, "attrs": { "volume": "0.1" } },
+    { "type": "wokwi-pushbutton", "id": "btn1", "top": 200, "left": 100, "attrs": { "color": "blue" } }
+  ],
+  "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+    [ "pir1:VCC", "esp:3V3", "red", [ "v0" ] ],
+    [ "pir1:GND", "esp:GND.1", "black", [ "v0" ] ],
+    [ "pir1:OUT", "esp:27", "green", [ "v0" ] ],
+    [ "ledG:A", "r1:1", "green", [ "v0" ] ],
+    [ "r1:2", "esp:26", "green", [ "v0" ] ],
+    [ "ledG:C", "esp:GND.1", "black", [ "v0" ] ],
+    [ "ledR:A", "r2:1", "red", [ "v0" ] ],
+    [ "r2:2", "esp:25", "red", [ "v0" ] ],
+    [ "ledR:C", "esp:GND.1", "black", [ "v0" ] ],
+    [ "bz1:1", "esp:33", "orange", [ "v0" ] ],
+    [ "bz1:2", "esp:GND.1", "black", [ "v0" ] ],
+    [ "btn1:1.l", "esp:14", "blue", [ "v0" ] ],
+    [ "btn1:2.l", "esp:GND.1", "black", [ "v0" ] ]
+  ],
+  "dependencies": {}
+}

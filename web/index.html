@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Central de Segurança IoT</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 0 12px; }
+  h1 { font-size: 22px; }
+  #status { font-size: 20px; font-weight: bold; padding: 10px; border: 2px solid #888; margin: 10px 0; }
+  .ARMADO { background: #fdd; border-color: #c0392b !important; }
+  .DESARMADO { background: #dfd; border-color: #27ae60 !important; }
+  table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+  th, td { border: 1px solid #999; padding: 6px; text-align: left; font-size: 14px; }
+  th { background: #eee; }
+  tr.mov td:first-child { color: #c0392b; font-weight: bold; }
+  small { color: #666; }
+</style>
+</head>
+<body>
+<h1>CENTRAL DE SEGURANÇA IoT – Sala de Equipamentos</h1>
+
+<div id="status">Carregando...</div>
+<p>Total de ocorrências: <b id="total">-</b> &nbsp;|&nbsp; Conexão: <b id="conn">-</b></p>
+
+<table>
+  <thead><tr><th>Data/Hora</th><th>Evento</th><th>Estado</th><th>Sensor</th><th>Notificação</th></tr></thead>
+  <tbody id="lista"></tbody>
+</table>
+<p><small>Atualiza sozinho a cada 2 segundos. Mostra os últimos 50 eventos.</small></p>
+
+<script>
+  // >>> TROQUE pelo endereço do seu Realtime Database <<<
+  const FIREBASE_URL_RAW = "https://SEU-PROJETO-default-rtdb.firebaseio.com";
+  const FIREBASE_URL = FIREBASE_URL_RAW.trim().replace(/\/+$/, ""); // tira barra(s) do final
+
+  const box = document.getElementById("status");
+  const conn = document.getElementById("conn");
+
+  function fmt(ts) {
+    return ts ? new Date(ts).toLocaleString("pt-BR") : "-";
+  }
+
+  function erro(msg) {
+    conn.textContent = "ERRO";
+    box.textContent = msg;
+    box.className = "";
+  }
+
+  async function atualizar() {
+    if (FIREBASE_URL.includes("SEU-PROJETO")) {
+      erro("Edite o index.html e coloque o endereço do seu Firebase em FIREBASE_URL_RAW.");
+      return;
+    }
+    try {
+      const rs = await fetch(FIREBASE_URL + "/status.json");
+      const st = await rs.json();
+      const re = await fetch(FIREBASE_URL + "/eventos.json?orderBy=%22%24key%22&limitToLast=50");
+      const ev = await re.json();
+
+      if (st && st.error) { erro("Firebase respondeu: " + st.error); return; }
+      if (ev && ev.error) { erro("Firebase respondeu: " + ev.error); return; }
+
+      if (st && st.estado) {
+        box.textContent = "SISTEMA " + st.estado + "  (atualizado em " + fmt(st.ts) + ")";
+        box.className = st.estado;
+        document.getElementById("total").textContent = st.ocorrencias;
+      } else {
+        box.textContent = "Sem dados ainda – rode a simulação no Wokwi.";
+        box.className = "";
+      }
+
+      const lista = Object.values(ev || {}).filter(e => e && e.tipo).sort((a, b) => b.ts - a.ts);
+      document.getElementById("lista").innerHTML = lista.map(e =>
+        "<tr class='" + (e.tipo === "Movimento detectado" ? "mov" : "") + "'>" +
+        "<td>" + fmt(e.ts) + "</td><td>" + e.tipo + "</td><td>" + e.estado +
+        "</td><td>" + e.sensor + "</td><td>" + e.notificacao + "</td></tr>"
+      ).join("");
+
+      conn.textContent = "OK";
+    } catch (err) {
+      erro("Não consegui falar com o Firebase: " + err.message);
+    }
+  }
+
+  atualizar();
+  setInterval(atualizar, 2000);
+</script>
+</body>
+</html>
